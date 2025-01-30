@@ -10,14 +10,13 @@
 // #include "display/display.hpp"
 #include "logger/logger.hpp"
 
-DISPLAYCONFIG dconfig = {128, 64, D2, D1};
-
-Display display(&dconfig);
-
-// Set up the NTP UDP client
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
 char logbuffer[512];
+
+Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
+DISPLAYCONFIG dconfig = {128, 64, D2, D1};
+DISPLAY_OBJECTS dobj = {clk};
+
+Display display(&dconfig, &dobj);
 
 void setup() {
   Serial.begin(74880);
@@ -42,8 +41,7 @@ void setup() {
 
   // Initializing NTP
   logln(rawDisplay, "Initializing NTP..");
-  timeClient.update();
-  display.setNTPClient(&timeClient);
+  clk.update();
 }
 
 void loop() {

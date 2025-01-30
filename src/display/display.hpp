@@ -19,6 +19,7 @@
 
 #include "types/temphumid.hpp"
 #include "types/displayconfig.hpp"
+#include "types/displayobjects.hpp"
 
 #define NUMBER_OF_FRAMES 1
 
@@ -53,7 +54,7 @@ class Display {
          * 
          * @param config Pointer which points to the displayconfig object.
          */
-        Display(DISPLAYCONFIG *config);
+        Display(DISPLAYCONFIG *config, DISPLAY_OBJECTS *dispobjects);
 
         /**
          * @brief Initializes the display connected to the given pins.
@@ -84,15 +85,6 @@ class Display {
          * display. 
          */
         SSD1306Wire& getDisplay();
-
-        /**
-         * @brief Sets the ntpclient which should be used to query the time. 
-         * 
-         * @param ntpclient NTPClient which is used to query the time
-         */
-        void setNTPClient(NTPClient *ntpclient);
-
-
         /**
          * @brief Writes a welcome image to the display.
          * 
@@ -101,6 +93,7 @@ class Display {
 
     private:
         DISPLAYCONFIG *displayconfig;
+        DISPLAY_OBJECTS *dispobjects;
         SSD1306Wire display;
         OLEDDisplayUi ui;
         FrameCallback frameCallbacks[1];

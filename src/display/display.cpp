@@ -1,8 +1,9 @@
 #include "display.hpp"
 
 
-Display::Display(DISPLAYCONFIG *config) : 
+Display::Display(DISPLAYCONFIG *config, DISPLAY_OBJECTS *dispobjects) : 
     displayconfig(config),
+    dispobjects(dispobjects),
     display(SSD1306Wire(0x3c, config->sda_pin, config->sdc_pin)),
     ui(OLEDDisplayUi(&display)) {
 }
@@ -45,7 +46,7 @@ bool Display::initialize() {
 }
 
 unsigned int Display::update() {
-    this->ui.getUiState()->userData = this->ntpClient;
+    this->ui.getUiState()->userData = this->dispobjects;
     return this->ui.update();
 }
 
@@ -53,9 +54,10 @@ SSD1306Wire& Display::getDisplay() {
     return this->display;
 }
 
+/*
 void Display::setNTPClient(NTPClient *ntpclient) {
     this->ntpClient = ntpclient;
-}
+}*/
 
 void Display::displayWelcomeFrame() {
     String msg = "Roberts Bathroom Display";
@@ -69,10 +71,9 @@ void Display::displayWelcomeFrame() {
 }
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  NTPClient *ntpclient = (NTPClient*) state->userData;
-  String ntptime = ntpclient->getFormattedTime();
-  time_t epoch = ntpclient->getEpochTime();
-  struct tm *timeInfo = localtime(&epoch);
+  DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
+  String ntptime = dispobjects->clock.getFormattedTime();
+  String ntpdate = dispobjects->clock.getFormattedDate();
 
   // Draw Clock
   // display->setTextAlignment(TEXT_ALIGN_LEFT);
@@ -81,10 +82,8 @@ void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t 
   display->drawString(64 - (width / 2), 10, ntptime);
 
   // Draw Date
-  char datebuff[20];
-  sprintf(datebuff, "%02d.%02d.%04d", timeInfo->tm_mday, timeInfo->tm_mon + 1, timeInfo->tm_year);
   display->setFont(ArialMT_Plain_10);
-  width = display->getStringWidth(datebuff);
-  display->drawString(64 - (width / 2), 35, datebuff);
+  width = display->getStringWidth(ntpdate);
+  display->drawString(64 - (width / 2), 35, ntpdate);
 }
 
