@@ -17,11 +17,10 @@
 
 #include <NTPClient.h>
 
-#include "types/temphumid.hpp"
 #include "types/displayconfig.hpp"
 #include "types/displayobjects.hpp"
 
-#define NUMBER_OF_FRAMES 1
+#define NUMBER_OF_FRAMES 2
 
 const uint8_t activeSymbol[] PROGMEM = {
     B00000000,
@@ -46,6 +45,7 @@ const uint8_t inactiveSymbol[] PROGMEM = {
 };
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y);
+void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y); 
 
 class Display {
     public:
@@ -63,13 +63,6 @@ class Display {
          * @return false if there was an error during the display initialization
          */
         bool initialize();
-
-        /**
-         * @brief Sets the current Temperature and Humidity of the display.
-         * 
-         * @param temphumid Struct which contains the temperature and humidity information
-         */
-        void setTemperatureHumid(TempHumid* temphumid);
 
         /**
          * @brief Updates the display and returns the remaining ticks
@@ -96,7 +89,7 @@ class Display {
         DISPLAY_OBJECTS *dispobjects;
         SSD1306Wire display;
         OLEDDisplayUi ui;
-        FrameCallback frameCallbacks[1];
+        FrameCallback frameCallbacks[NUMBER_OF_FRAMES];
         NTPClient *ntpClient; 
 };
 #endif

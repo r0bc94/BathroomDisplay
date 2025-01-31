@@ -7,14 +7,15 @@
 #include "SSD1306Wire.h"
 
 #include "SETTINGS.hpp"
-// #include "display/display.hpp"
 #include "logger/logger.hpp"
+#include "tempsensor/tempsensor.hpp"
 
 char logbuffer[512];
 
 Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
+TempSensor tmpsensor(D3);
 DISPLAYCONFIG dconfig = {128, 64, D2, D1};
-DISPLAY_OBJECTS dobj = {clk};
+DISPLAY_OBJECTS dobj = {clk, tmpsensor};
 
 Display display(&dconfig, &dobj);
 
@@ -42,6 +43,10 @@ void setup() {
   // Initializing NTP
   logln(rawDisplay, "Initializing NTP..");
   clk.update();
+
+  // Initializing DHT Sensor
+  logln(rawDisplay, "Initializing Temp Sensor");
+  tmpsensor.initialize();
 }
 
 void loop() {

@@ -10,6 +10,7 @@ Display::Display(DISPLAYCONFIG *config, DISPLAY_OBJECTS *dispobjects) :
 
 bool Display::initialize() {
     this->frameCallbacks[0] = digitalClockFrame;
+    this->frameCallbacks[1] = temperatureHumidFrame;
 
     this->display.setBrightness(255);
     this->display.setContrast(255);
@@ -87,3 +88,14 @@ void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t 
   display->drawString(64 - (width / 2), 35, ntpdate);
 }
 
+void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
+    DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
+
+    // Draw Temperature String
+    String tempstring = "T: " + dispobjects->tempSensor.getTemperature();
+    display->drawString(80, 16, tempstring);
+
+    // Draw Humidity String
+    String humidString = "H: " + dispobjects->tempSensor.getHumid();
+    display->drawString(80, 24, humidString);
+}
