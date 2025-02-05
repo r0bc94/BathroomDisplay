@@ -9,15 +9,21 @@
 #include "SETTINGS.hpp"
 #include "logger/logger.hpp"
 #include "tempsensor/tempsensor.hpp"
+#include "mqttclient/mqttclient.hpp"
 
 char logbuffer[512];
 
 Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
-TempSensor tmpsensor(D3);
+TempSensor tmpsensor(D4);
+WiFiClient wificlient;
+MqttClient mqttClient(wificlient, tmpsensor);
+
 DISPLAYCONFIG dconfig = {128, 64, D2, D1};
 DISPLAY_OBJECTS dobj = {clk, tmpsensor};
 
 Display display(&dconfig, &dobj);
+
+unsigned int startmil = 0;
 
 void setup() {
   Serial.begin(74880);
@@ -47,10 +53,26 @@ void setup() {
   // Initializing DHT Sensor
   logln(rawDisplay, "Initializing Temp Sensor");
   tmpsensor.initialize();
+  delay(5000);
+  tmpsensor.update();
+
+  // Connecting MQTT
+  mqttClient.initialize(MQTT_SERVER, MQTT_PORT, rawDisplay);
+  logln(rawDisplay, "MQTT Initialized");
+  startmil = millis();
 }
 
 void loop() {
   unsigned int updatetime = display.update();
+
+  if (millis() - startmil >= 5000) {
+    logln(nullptr, "Updating Temperature Sensor");
+    updatetime += tmpsensor.update();
+    startmil = millis();
+  }
+
+
+  
   delay(1000 - updatetime);
 }
 

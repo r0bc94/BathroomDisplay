@@ -12,6 +12,9 @@ unsigned long TempSensor::update() {
     unsigned long start_millis = millis();
     this->temperature = this->dhtSensor.readTemperature();
     this->humid = this->dhtSensor.readHumidity();
+
+    Serial.printf("Sensor Updated - Temperature: %f C Humid: %f\n", this->temperature, this->humid);
+
     return millis() - start_millis;
 }
 

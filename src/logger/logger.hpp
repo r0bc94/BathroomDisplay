@@ -1,3 +1,5 @@
+#ifndef LOGGER_H
+#define LOGGER_H
 #include <display/display.hpp>
 #include <Arduino.h>
 
@@ -8,3 +10,5 @@
  * @param message Message which should be logged
  */
 void logln(SSD1306Wire* disp, const char *message);
+
+#endif
