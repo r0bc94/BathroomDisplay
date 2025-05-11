@@ -1,11 +1,23 @@
 #include "clock/clock.hpp"
 
-Clock::Clock(const char *ntpAddress, long offset, unsigned long updateInterval) :
+Clock::Clock(const char *ntpAddress, long offset, const char *tzstring, unsigned long updateInterval) :
         udpClient(), 
-        ntpClient(udpClient, ntpAddress, offset, updateInterval) {}
+        ntpClient(udpClient, ntpAddress, offset, updateInterval) {
+            configTzTime(tzstring, nullptr);
+        }
 
 const String Clock::getFormattedTime() {
-    return this->ntpClient.getFormattedTime();
+    time_t epoch = this->ntpClient.getEpochTime();
+    struct tm *timeInfo = localtime(&epoch);
+    int hours = timeInfo->tm_hour;
+    int minutes = timeInfo->tm_min;
+    int seconds = timeInfo->tm_sec;
+
+    String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
+    String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
+    String secondStr = seconds < 10 ? "0" + String(seconds) : String(seconds);
+
+    return hoursStr + ":" + minuteStr + ":" + secondStr;
 }
 
 const String Clock::getFormattedDate() {
