@@ -69,6 +69,7 @@ void loop() {
     logln(nullptr, "Updating Temperature Sensor");
     updatetime += tmpsensor.update();
     startmil = millis();
+    clk.update();
   }
 
 
