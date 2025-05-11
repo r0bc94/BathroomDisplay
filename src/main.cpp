@@ -13,7 +13,7 @@
 
 char logbuffer[512];
 
-Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
+Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_POSIX_TIMEZONESTRING, NTP_INTERVAL);
 TempSensor tmpsensor(D4);
 WiFiClient wificlient;
 MqttClient mqttClient(wificlient, tmpsensor);
