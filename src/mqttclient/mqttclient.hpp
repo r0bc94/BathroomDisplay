@@ -56,7 +56,7 @@ class MqttClient {
 
     private:
         PubSubClient mqttClient;
-        TempSensor tempsensor;
+        TempSensor &tempsensor;
 
         boolean publishMessage(const String &topic, const String &message);
         String root_topic;
