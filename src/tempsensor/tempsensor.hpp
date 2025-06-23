@@ -22,20 +22,20 @@ class TempSensor {
         unsigned long update();
 
         /**
-         * @brief Reads and returns the current Temperature read by the Sensor or an
-         * empty string, if the reading failed.
+         * @brief Returns the last measured temperature value of the sensor. Call update() to
+         * update the value.
          * 
-         * @return const String Temperature or empty, if reading failed
+         * @return float last measured temperature or TEMP_READING_FAILED if the last update failed.
          */
-        const String getTemperature();
+        float getTemperature();
 
         /**
-         * @brief Reads and returns the current Humidity read by the Sensor or an
-         * empty string, if the reading failed.
+         * @brief Returns the last measured humidity value of the sensor. Call update() to
+         * update the value.
          * 
-         * @return const String Humidity or empty, if reading failed
+         * @return float last measured humidity or HUMID_READING_FAILED if the last update failed.
          */
-        const String getHumid();
+        float getHumid();
 
     private:
         DHT dhtSensor;

@@ -13,32 +13,24 @@ unsigned long TempSensor::update() {
     this->temperature = this->dhtSensor.readTemperature();
     this->humid = this->dhtSensor.readHumidity();
 
+    if (isnan(this->temperature)) {
+        Serial.println("Failed to Read Temperature from DHT Sensor!");
+    }
+    
+    if (isnan(this->humid)) {
+        Serial.println("Failed to Read Humidity from DHT Sensor!");
+    } 
+
     Serial.printf("Sensor Updated - Temperature: %f C Humid: %f\n", this->temperature, this->humid);
 
     return millis() - start_millis;
 }
 
-const String TempSensor::getTemperature() {
-    char formatBuffer[7];
-
-    if (isnan(this->temperature)) {
-        Serial.println("Failed to Read Temperature from DHT Sensor!");
-        return "";
-    }
-
-    sprintf(formatBuffer, "%.1f\xB0 C", this->temperature);
-    return String(formatBuffer);    
+float TempSensor::getTemperature() {
+    return this->temperature;
 }
 
-const String TempSensor::getHumid() {
-    char formatBuffer[7];
-
-    if (isnan(this->humid)) {
-        Serial.println("Failed to Read Humidity from DHT Sensor!");
-        return "";
-    }
-
-    sprintf(formatBuffer, "%.1f\x25", this->humid);
-    return String(formatBuffer);    
+float TempSensor::getHumid() {
+    return this->humid;
 }
 

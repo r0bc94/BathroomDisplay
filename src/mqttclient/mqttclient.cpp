@@ -62,11 +62,15 @@ unsigned long MqttClient::publishHeartbeat() {
 
 unsigned long MqttClient::publishTempHumidMeasurements() {
     unsigned long startmillis = millis();
-    String temperature = this->tempsensor.getTemperature();
-    String humid = this->tempsensor.getHumid();
+    char formatBuffer[7];
+    float temperature = this->tempsensor.getTemperature();
+    float humid = this->tempsensor.getHumid();
 
-    this->publishMessage(this->root_topic + "/temperature", temperature);
-    this->publishMessage(this->root_topic + "/humid", humid);
+    sprintf(formatBuffer, "%.1f", temperature);
+    this->publishMessage(this->root_topic + "/temperature", formatBuffer);
+
+    sprintf(formatBuffer, "%.1f", humid);
+    this->publishMessage(this->root_topic + "/humid", formatBuffer);
 
     return millis() - startmillis;
 }
