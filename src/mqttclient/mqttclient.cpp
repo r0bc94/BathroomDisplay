@@ -1,8 +1,9 @@
 #include "mqttclient/mqttclient.hpp"
 
-MqttClient::MqttClient(WiFiClient &wifiClient, TempSensor &tempsensor): 
+MqttClient::MqttClient(WiFiClient &wifiClient, TempSensor &tempsensor, String root_topic): 
     mqttClient(PubSubClient(wifiClient)),
-    tempsensor(tempsensor) {
+    tempsensor(tempsensor),
+    root_topic(root_topic) {
 }
 
 MQTT_CONNECT_STATE MqttClient::reconnect(SSD1306Wire *disp) {
@@ -52,13 +53,20 @@ boolean MqttClient::publishMessage(const String &topic, const String &message) {
     return publish_success;
 }
 
-unsigned long MqttClient::publishTempHumidMeasurements(const String &topic) {
+unsigned long MqttClient::publishHeartbeat() {
+    unsigned long startmillis = millis();
+    this->publishMessage(this->root_topic + "/heartbeat", "alive");
+
+    return millis() - startmillis;
+}
+
+unsigned long MqttClient::publishTempHumidMeasurements() {
     unsigned long startmillis = millis();
     String temperature = this->tempsensor.getTemperature();
     String humid = this->tempsensor.getHumid();
 
-    this->publishMessage(topic + "/temperature", temperature);
-    this->publishMessage(topic + "/humid", humid);
+    this->publishMessage(this->root_topic + "/temperature", temperature);
+    this->publishMessage(this->root_topic + "/humid", humid);
 
     return millis() - startmillis;
 }
