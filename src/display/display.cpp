@@ -90,13 +90,30 @@ void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t 
 
 void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
     DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
+    char formatBuffer[7];
+
+    float temp = dispobjects->tempSensor.getTemperature();
+    float humid = dispobjects->tempSensor.getHumid();
 
     display->setFont(ArialMT_Plain_16);
+
     // Draw Temperature String
-    String tempstring = "Temp: " + dispobjects->tempSensor.getTemperature();
+    if(isnan(temp)) {
+        sprintf(formatBuffer, "---");
+    } else {
+        sprintf(formatBuffer, "%.1f°C", temp);
+    }
+    
+    String tempstring = "Temp: " + String(formatBuffer);
     display->drawString(10, 10, tempstring);
 
     // Draw Humidity String
-    String humidString = "Humid: " + dispobjects->tempSensor.getHumid();
+    if(isnan(humid)) {
+        sprintf(formatBuffer, "---");
+    } else {
+        sprintf(formatBuffer, "%.1f%%", humid);
+    }
+
+    String humidString = "Humid: " + String(formatBuffer);
     display->drawString(10, 30, humidString);
 }

@@ -16,7 +16,7 @@ char logbuffer[512];
 Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_POSIX_TIMEZONESTRING, NTP_INTERVAL);
 TempSensor tmpsensor(D4);
 WiFiClient wificlient;
-MqttClient mqttClient(wificlient, tmpsensor);
+MqttClient mqttClient(wificlient, tmpsensor, MQTT_ROOT_TOPIC);
 
 DISPLAYCONFIG dconfig = {128, 64, D2, D1};
 DISPLAY_OBJECTS dobj = {clk, tmpsensor};
@@ -62,14 +62,24 @@ void setup() {
   startmil = millis();
 }
 
+char logbuff[128];
 void loop() {
   unsigned int updatetime = display.update();
 
   if (millis() - startmil >= 5000) {
     logln(nullptr, "Updating Temperature Sensor");
     updatetime += tmpsensor.update();
-    startmil = millis();
+    
+    sprintf(logbuff, "Publishing Results to MQTT Server: %s\n", MQTT_SERVER);
+    logln(nullptr, logbuff);
+    mqttClient.publishTempHumidMeasurements();
+
+    logln(nullptr, "Publishing heartbeat message");
+    mqttClient.publishHeartbeat();
+
+    logln(nullptr, "Updating Clock");
     clk.update();
+    startmil = millis();
   }
 
 
