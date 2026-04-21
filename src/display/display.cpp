@@ -37,9 +37,11 @@ bool Display::initialize() {
 
     // Add frames
     ui.setFrames(this->frameCallbacks, NUMBER_OF_FRAMES);
+    ui.setAutoTransitionForwards();
 
     // Initialising the UI will init the display too.
     ui.init();
+
 
     Serial.println("Display Initialized");
     return true;

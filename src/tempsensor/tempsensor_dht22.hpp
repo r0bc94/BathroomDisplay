@@ -1,28 +1,28 @@
-#ifndef TEMPSENSOR_H
-#define TEMPSENSOR_H
+#ifndef TEMPSENSOR_DHT22_H
+#define TEMPSENSOR_DHT22_H
 
 #include <Arduino.h>
 #include <DHT.h>
 
-class TempSensor {
-    public:
+#include "tempsensor/tempsensor.hpp"
 
-        TempSensor();
-        TempSensor(uint8_t sensorPin); 
-        virtual ~TempSensor() {}
+class TempSensorDHT22 : public TempSensor {
+    public:
+        TempSensorDHT22();
+        TempSensorDHT22(uint8_t sensorPin); 
 
         /**
          * @brief Initializes the DHT Sensor.
          * 
          */
-        virtual void initialize() = 0;
+        void initialize();
 
         /**
          * @brief Triggers a reading and updating the internal values.
          * 
          * @returns The number of millis the operation took. 
          */
-        virtual unsigned long update() = 0;
+        unsigned long update();
 
         /**
          * @brief Returns the last measured temperature value of the sensor. Call update() to
@@ -30,7 +30,7 @@ class TempSensor {
          * 
          * @return float last measured temperature or TEMP_READING_FAILED if the last update failed.
          */
-        virtual float getTemperature() = 0;
+        float getTemperature();
 
         /**
          * @brief Returns the last measured humidity value of the sensor. Call update() to
@@ -38,7 +38,12 @@ class TempSensor {
          * 
          * @return float last measured humidity or HUMID_READING_FAILED if the last update failed.
          */
-        virtual float getHumid() = 0;
+        float getHumid();
+
+    private:
+        DHT dhtSensor;
+        float temperature;
+        float humid;
 };
 
 #endif
