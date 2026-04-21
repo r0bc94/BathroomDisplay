@@ -8,13 +8,23 @@
 
 #include "SETTINGS.hpp"
 #include "logger/logger.hpp"
-#include "tempsensor/tempsensor.hpp"
+#include "tempsensor/tempsensor_dht20.hpp"
+#include "tempsensor/tempsensor_dht22.hpp"
 #include "mqttclient/mqttclient.hpp"
 
 char logbuffer[512];
 
 Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_POSIX_TIMEZONESTRING, NTP_INTERVAL);
-TempSensor tmpsensor(D4);
+
+
+#ifdef SENSOR_DHT_20
+  TempSensorDHT20 tmpsensor;
+#endif
+
+#ifdef SENSOR_DHT_22
+  TempSensorDHT22 tmpsensor(D4);
+#endif
+
 WiFiClient wificlient;
 MqttClient mqttClient(wificlient, tmpsensor, MQTT_ROOT_TOPIC);
 
