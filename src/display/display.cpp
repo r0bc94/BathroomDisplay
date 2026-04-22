@@ -43,7 +43,6 @@ bool Display::initialize() {
 
     Serial.println("Display Initialized");
     return true;
-
 }
 
 unsigned int Display::update() {
@@ -72,20 +71,20 @@ void Display::displayWelcomeFrame() {
 }
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
-  String ntptime = dispobjects->clock.getFormattedTime();
-  String ntpdate = dispobjects->clock.getFormattedDate();
+    DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
+    String ntptime = dispobjects->clock.getFormattedTime();
+    String ntpdate = dispobjects->clock.getFormattedDate();
 
-  // Draw Clock
-  // display->setTextAlignment(TEXT_ALIGN_LEFT);
-  display->setFont(ArialMT_Plain_24);
-  uint8_t width = display->getStringWidth(ntptime);
-  display->drawString(64 - (width / 2), 10, ntptime);
+    // Draw Clock
+    // display->setTextAlignment(TEXT_ALIGN_LEFT);
+    display->setFont(ArialMT_Plain_24);
+    uint8_t width = display->getStringWidth(ntptime);
+    display->drawString((64 - (width / 2)) + x, 10, ntptime);
 
-  // Draw Date
-  display->setFont(ArialMT_Plain_10);
-  width = display->getStringWidth(ntpdate);
-  display->drawString(64 - (width / 2), 35, ntpdate);
+    // Draw Date
+    display->setFont(ArialMT_Plain_10);
+    width = display->getStringWidth(ntpdate);
+    display->drawString((64 - (width / 2)) + x, 35, ntpdate);
 }
 
 void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
@@ -105,7 +104,7 @@ void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int1
     }
     
     String tempstring = "Temp: " + String(formatBuffer);
-    display->drawString(10, 10, tempstring);
+    display->drawString(10 + x, 10, tempstring);
 
     // Draw Humidity String
     if(isnan(humid)) {
@@ -115,5 +114,6 @@ void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int1
     }
 
     String humidString = "Humid: " + String(formatBuffer);
-    display->drawString(10, 30, humidString);
+    display->drawString(10 + x, 30, humidString);
 }
+
