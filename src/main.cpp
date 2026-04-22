@@ -45,7 +45,6 @@ void setup() {
   }
   sprintf(logbuffer, "Connected!\nIP: %s\n", WiFi.localIP().toString().c_str());
   logln(rawDisplay, logbuffer);
-  Serial.println(WiFi.localIP());
 
   // Initializing NTP
   logln(rawDisplay, "Initializing NTP..");
