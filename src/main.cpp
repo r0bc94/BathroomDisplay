@@ -67,13 +67,14 @@ void setup() {
 char logbuff[128];
 void loop() {
   unsigned int updatetime = display.update();
+  long sleeptime = updatetime;
 
   if (millis() - update_millis >= UPDATE_INTERVAL) {
     logln(nullptr, "Updating Temperature Sensor");
-    updatetime += tmpsensor.update();
+    sleeptime -= tmpsensor.update();
 
     logln(nullptr, "Publishing heartbeat message");
-    updatetime += mqttClient.publishHeartbeat();
+    sleeptime -= mqttClient.publishHeartbeat();
 
     logln(nullptr, "Updating Clock");
     clk.update();
@@ -84,14 +85,16 @@ void loop() {
   if (millis() - publish_millis >= MQTT_PUBLISH_INTERVAL) {
     sprintf(logbuff, "Publishing Results to MQTT Server: %s\n", MQTT_SERVER);
     logln(nullptr, logbuff);
-    updatetime += mqttClient.publishTempHumidMeasurements();
+    sleeptime -= mqttClient.publishTempHumidMeasurements();
     
     publish_millis = millis();
   }
   
-  long sleeptime = BASE_IDLETIME - updatetime;
   if (sleeptime <= 0) {
-    Serial.printf("Cant keep up. Lower Framerate or sleep interval!");
-  } 
+    Serial.printf("Cant keep up. Lower Framerate!\n");
+  } else {
+    //Serial.printf("Sleeping for %ld milliseconds\n", sleeptime);
+    delay(sleeptime);
+  }
 }
 

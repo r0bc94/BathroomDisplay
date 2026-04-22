@@ -72,8 +72,13 @@ void Display::displayWelcomeFrame() {
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
     DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
-    String ntptime = dispobjects->clock.getFormattedTime();
-    String ntpdate = dispobjects->clock.getFormattedDate();
+    static String ntptime = "";
+    static String ntpdate = "";
+    
+    if (state->frameState == FIXED) {
+        ntptime = dispobjects->clock.getFormattedTime();
+        ntpdate = dispobjects->clock.getFormattedDate();
+    }
 
     // Draw Clock
     // display->setTextAlignment(TEXT_ALIGN_LEFT);
