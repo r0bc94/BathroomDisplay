@@ -48,3 +48,12 @@
 #define MQTT_PUBLISH_INTERVAL 60000
 
 #define UPDATE_INTERVAL 5000
+
+/**
+ * @brief Maximum amount of time the controller can sleep. 
+ * This time is substracted from the runtime of the different method (for example updating the NTP timer etc.).
+ * 
+ * When the controller cant keep up, lower this value.  
+ * 
+ */
+#define BASE_IDLETIME 1000
