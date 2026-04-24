@@ -14,7 +14,10 @@
 char logbuffer[512];
 
 Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_POSIX_TIMEZONESTRING, NTP_INTERVAL);
-TempSensor tmpsensor(D4);
+
+TempSensor tmpsensor(D3);
+bool tempSensorReadSuccess = false;
+
 WiFiClient wificlient;
 MqttClient mqttClient(wificlient, tmpsensor, MQTT_ROOT_TOPIC);
 
@@ -54,12 +57,20 @@ void setup() {
   logln(rawDisplay, "Initializing Temp Sensor");
   tmpsensor.initialize();
   delay(5000);
-  tmpsensor.update();
+  tmpsensor.update(&tempSensorReadSuccess);
+  (tempSensorReadSuccess) ?
+    logln(rawDisplay, "OK") 
+    : logln(rawDisplay, "FAILED");
+  
+
+  delay(2000);
 
   // Connecting MQTT
   mqttClient.initialize(MQTT_SERVER, MQTT_PORT, rawDisplay);
   logln(rawDisplay, "MQTT Initialized");
   
+  delay(2000);
+
   update_millis = millis();
   publish_millis = millis();
 }
@@ -71,7 +82,11 @@ void loop() {
 
   if (millis() - update_millis >= UPDATE_INTERVAL) {
     logln(nullptr, "Updating Temperature Sensor");
-    sleeptime -= tmpsensor.update();
+    sleeptime -= tmpsensor.update(&tempSensorReadSuccess);
+
+    if (!tempSensorReadSuccess) {
+      logln(nullptr, "Failed to read from the temp sensor!");
+    }
 
     logln(nullptr, "Publishing heartbeat message");
     sleeptime -= mqttClient.publishHeartbeat();
