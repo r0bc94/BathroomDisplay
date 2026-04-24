@@ -17,9 +17,10 @@ class TempSensor {
         /**
          * @brief Triggers a reading and updating the internal values.
          * 
+         * @param success Will be set to true if the update was successful, else to false.
          * @returns The number of millis the operation took. 
          */
-        unsigned long update();
+        unsigned long update(bool *success);
 
         /**
          * @brief Returns the last measured temperature value of the sensor. Call update() to

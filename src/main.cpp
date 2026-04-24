@@ -14,7 +14,10 @@
 char logbuffer[512];
 
 Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_POSIX_TIMEZONESTRING, NTP_INTERVAL);
-TempSensor tmpsensor(D4);
+
+TempSensor tmpsensor(D3);
+bool tempSensorReadSuccess = false;
+
 WiFiClient wificlient;
 MqttClient mqttClient(wificlient, tmpsensor, MQTT_ROOT_TOPIC);
 
@@ -45,7 +48,6 @@ void setup() {
   }
   sprintf(logbuffer, "Connected!\nIP: %s\n", WiFi.localIP().toString().c_str());
   logln(rawDisplay, logbuffer);
-  Serial.println(WiFi.localIP());
 
   // Initializing NTP
   logln(rawDisplay, "Initializing NTP..");
@@ -55,12 +57,20 @@ void setup() {
   logln(rawDisplay, "Initializing Temp Sensor");
   tmpsensor.initialize();
   delay(5000);
-  tmpsensor.update();
+  tmpsensor.update(&tempSensorReadSuccess);
+  (tempSensorReadSuccess) ?
+    logln(rawDisplay, "OK") 
+    : logln(rawDisplay, "FAILED");
+  
+
+  delay(2000);
 
   // Connecting MQTT
   mqttClient.initialize(MQTT_SERVER, MQTT_PORT, rawDisplay);
   logln(rawDisplay, "MQTT Initialized");
   
+  delay(2000);
+
   update_millis = millis();
   publish_millis = millis();
 }
@@ -68,13 +78,18 @@ void setup() {
 char logbuff[128];
 void loop() {
   unsigned int updatetime = display.update();
+  long sleeptime = updatetime;
 
   if (millis() - update_millis >= UPDATE_INTERVAL) {
     logln(nullptr, "Updating Temperature Sensor");
-    updatetime += tmpsensor.update();
+    sleeptime -= tmpsensor.update(&tempSensorReadSuccess);
+
+    if (!tempSensorReadSuccess) {
+      logln(nullptr, "Failed to read from the temp sensor!");
+    }
 
     logln(nullptr, "Publishing heartbeat message");
-    mqttClient.publishHeartbeat();
+    sleeptime -= mqttClient.publishHeartbeat();
 
     logln(nullptr, "Updating Clock");
     clk.update();
@@ -85,11 +100,16 @@ void loop() {
   if (millis() - publish_millis >= MQTT_PUBLISH_INTERVAL) {
     sprintf(logbuff, "Publishing Results to MQTT Server: %s\n", MQTT_SERVER);
     logln(nullptr, logbuff);
-    mqttClient.publishTempHumidMeasurements();
+    sleeptime -= mqttClient.publishTempHumidMeasurements();
     
     publish_millis = millis();
   }
   
-  delay(1000 - updatetime);
+  if (sleeptime <= 0) {
+    Serial.printf("Cant keep up. Lower Framerate!\n");
+  } else {
+    //Serial.printf("Sleeping for %ld milliseconds\n", sleeptime);
+    delay(sleeptime);
+  }
 }
 
