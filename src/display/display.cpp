@@ -66,7 +66,7 @@ void Display::displayWelcomeFrame() {
     this->display.drawString(64 - (width / 2), 20, msg);
 
     this->display.setFont(ArialMT_Plain_10);
-    this->display.drawString(0, 50, "v0.0.1");
+    this->display.drawString(0, 50, "v1.0.0");
     this->display.display();
 }
 
