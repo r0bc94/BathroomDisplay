@@ -6,7 +6,7 @@
 
 class Clock {
     public:
-        Clock(const char *ntpAddress, long offset, unsigned long updateInterval);
+        Clock(const char *ntpAddress, long offset, const char *tzstring, unsigned long updateInterval);
 
         /**
          * @brief Returns a String which contains the formatted time. 

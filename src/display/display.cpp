@@ -43,7 +43,6 @@ bool Display::initialize() {
 
     Serial.println("Display Initialized");
     return true;
-
 }
 
 unsigned int Display::update() {
@@ -67,36 +66,59 @@ void Display::displayWelcomeFrame() {
     this->display.drawString(64 - (width / 2), 20, msg);
 
     this->display.setFont(ArialMT_Plain_10);
-    this->display.drawString(0, 50, "v0.0.1");
+    this->display.drawString(0, 50, "v1.0.0");
     this->display.display();
 }
 
 void digitalClockFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
-  DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
-  String ntptime = dispobjects->clock.getFormattedTime();
-  String ntpdate = dispobjects->clock.getFormattedDate();
+    DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
+    static String ntptime = "";
+    static String ntpdate = "";
+    
+    if (state->frameState == FIXED) {
+        ntptime = dispobjects->clock.getFormattedTime();
+        ntpdate = dispobjects->clock.getFormattedDate();
+    }
 
-  // Draw Clock
-  // display->setTextAlignment(TEXT_ALIGN_LEFT);
-  display->setFont(ArialMT_Plain_24);
-  uint8_t width = display->getStringWidth(ntptime);
-  display->drawString(64 - (width / 2), 10, ntptime);
+    // Draw Clock
+    // display->setTextAlignment(TEXT_ALIGN_LEFT);
+    display->setFont(ArialMT_Plain_24);
+    uint8_t width = display->getStringWidth(ntptime);
+    display->drawString((64 - (width / 2)) + x, 10, ntptime);
 
-  // Draw Date
-  display->setFont(ArialMT_Plain_10);
-  width = display->getStringWidth(ntpdate);
-  display->drawString(64 - (width / 2), 35, ntpdate);
+    // Draw Date
+    display->setFont(ArialMT_Plain_10);
+    width = display->getStringWidth(ntpdate);
+    display->drawString((64 - (width / 2)) + x, 35, ntpdate);
 }
 
 void temperatureHumidFrame(OLEDDisplay *display, OLEDDisplayUiState* state, int16_t x, int16_t y) {
     DISPLAY_OBJECTS *dispobjects = (DISPLAY_OBJECTS*) state->userData;
+    char formatBuffer[7];
+
+    float temp = dispobjects->tempSensor.getTemperature();
+    float humid = dispobjects->tempSensor.getHumid();
 
     display->setFont(ArialMT_Plain_16);
+
     // Draw Temperature String
-    String tempstring = "Temp: " + dispobjects->tempSensor.getTemperature();
-    display->drawString(10, 10, tempstring);
+    if(isnan(temp)) {
+        sprintf(formatBuffer, "---");
+    } else {
+        sprintf(formatBuffer, "%.1f°C", temp);
+    }
+    
+    String tempstring = "Temp: " + String(formatBuffer);
+    display->drawString(10 + x, 10, tempstring);
 
     // Draw Humidity String
-    String humidString = "Humid: " + dispobjects->tempSensor.getHumid();
-    display->drawString(10, 30, humidString);
+    if(isnan(humid)) {
+        sprintf(formatBuffer, "---");
+    } else {
+        sprintf(formatBuffer, "%.1f%%", humid);
+    }
+
+    String humidString = "Humid: " + String(formatBuffer);
+    display->drawString(10 + x, 30, humidString);
 }
+

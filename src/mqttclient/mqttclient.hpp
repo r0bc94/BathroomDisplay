@@ -18,9 +18,10 @@ class MqttClient {
          * 
          * @param WiFiClient Wifi Client which should be used for MQTT Connections.
          * @param tempsensor Reference to an already initialized tempsensor object.
+         * @param root_topic The root topic which will be used to publish MQTT messages. This must NOT end with a /. 
          * 
          */
-        MqttClient(WiFiClient &wifiClient, TempSensor &tempsensor);
+        MqttClient(WiFiClient &wifiClient, TempSensor &tempsensor, String root_topic);
 
         /**
          * @brief Initialize and connect the MQTT - Client.
@@ -42,13 +43,23 @@ class MqttClient {
          * 
          * @return uint8_t The number of Millis the operation took. 
          */
-        unsigned long publishTempHumidMeasurements(const String &topic);
+        unsigned long publishTempHumidMeasurements();
+
+
+        /**
+         * @brief Publishes a heratbeat message to the MQTT - Server on the specfied topic to
+         * indicate, that the node is still alive.
+         * 
+         * @return unsigned long The number of Millis the operation took. 
+         */
+        unsigned long publishHeartbeat();
 
     private:
         PubSubClient mqttClient;
-        TempSensor tempsensor;
+        TempSensor &tempsensor;
 
         boolean publishMessage(const String &topic, const String &message);
+        String root_topic;
 };
 
 

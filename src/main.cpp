@@ -13,17 +13,21 @@
 
 char logbuffer[512];
 
-Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_INTERVAL);
-TempSensor tmpsensor(D4);
+Clock clk(NTP_ADDRESS, NTP_OFFSET, NTP_POSIX_TIMEZONESTRING, NTP_INTERVAL);
+
+TempSensor tmpsensor(D3);
+bool tempSensorReadSuccess = false;
+
 WiFiClient wificlient;
-MqttClient mqttClient(wificlient, tmpsensor);
+MqttClient mqttClient(wificlient, tmpsensor, MQTT_ROOT_TOPIC);
 
 DISPLAYCONFIG dconfig = {128, 64, D2, D1};
 DISPLAY_OBJECTS dobj = {clk, tmpsensor};
 
 Display display(&dconfig, &dobj);
 
-unsigned int startmil = 0;
+unsigned long update_millis = 0;
+unsigned long publish_millis = 0;
 
 void setup() {
   Serial.begin(74880);
@@ -44,7 +48,6 @@ void setup() {
   }
   sprintf(logbuffer, "Connected!\nIP: %s\n", WiFi.localIP().toString().c_str());
   logln(rawDisplay, logbuffer);
-  Serial.println(WiFi.localIP());
 
   // Initializing NTP
   logln(rawDisplay, "Initializing NTP..");
@@ -54,25 +57,59 @@ void setup() {
   logln(rawDisplay, "Initializing Temp Sensor");
   tmpsensor.initialize();
   delay(5000);
-  tmpsensor.update();
+  tmpsensor.update(&tempSensorReadSuccess);
+  (tempSensorReadSuccess) ?
+    logln(rawDisplay, "OK") 
+    : logln(rawDisplay, "FAILED");
+  
+
+  delay(2000);
 
   // Connecting MQTT
   mqttClient.initialize(MQTT_SERVER, MQTT_PORT, rawDisplay);
   logln(rawDisplay, "MQTT Initialized");
-  startmil = millis();
+  
+  delay(2000);
+
+  update_millis = millis();
+  publish_millis = millis();
 }
 
+char logbuff[128];
 void loop() {
   unsigned int updatetime = display.update();
+  long sleeptime = updatetime;
 
-  if (millis() - startmil >= 5000) {
+  if (millis() - update_millis >= UPDATE_INTERVAL) {
     logln(nullptr, "Updating Temperature Sensor");
-    updatetime += tmpsensor.update();
-    startmil = millis();
+    sleeptime -= tmpsensor.update(&tempSensorReadSuccess);
+
+    if (!tempSensorReadSuccess) {
+      logln(nullptr, "Failed to read from the temp sensor!");
+    }
+
+    logln(nullptr, "Publishing heartbeat message");
+    sleeptime -= mqttClient.publishHeartbeat();
+
+    logln(nullptr, "Updating Clock");
+    clk.update();
+
+    update_millis = millis();
   }
 
-
+  if (millis() - publish_millis >= MQTT_PUBLISH_INTERVAL) {
+    sprintf(logbuff, "Publishing Results to MQTT Server: %s\n", MQTT_SERVER);
+    logln(nullptr, logbuff);
+    sleeptime -= mqttClient.publishTempHumidMeasurements();
+    
+    publish_millis = millis();
+  }
   
-  delay(1000 - updatetime);
+  if (sleeptime <= 0) {
+    Serial.printf("Cant keep up. Lower Framerate!\n");
+  } else {
+    //Serial.printf("Sleeping for %ld milliseconds\n", sleeptime);
+    delay(sleeptime);
+  }
 }
 
