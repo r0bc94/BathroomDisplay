@@ -9,7 +9,7 @@ MqttClient::MqttClient(WiFiClient &wifiClient, TempSensor &tempsensor, String ro
 MQTT_CONNECT_STATE MqttClient::reconnect(SSD1306Wire *disp) {
     char logbuffer[512];
     MQTT_CONNECT_STATE connect_state = 0;
-    for (int i = 0; !this->mqttClient.connected() && i < 10; i++) {
+    for (int i = 0; !this->mqttClient.connected() && i < 2; i++) {
         logln(disp, "Connecting MQTT...");
         // Create a random client ID
         String clientId = "ESP8266Client-";

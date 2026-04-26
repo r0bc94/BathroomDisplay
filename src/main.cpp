@@ -4,6 +4,8 @@
 #include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
+#include <cstdint>
+#include "PubSubClient.h"
 #include "SSD1306Wire.h"
 
 #include "SETTINGS.hpp"
@@ -26,6 +28,8 @@ DISPLAY_OBJECTS dobj = {clk, tmpsensor};
 
 Display display(&dconfig, &dobj);
 
+MQTT_CONNECT_STATE mqttstate = 0;
+
 unsigned long update_millis = 0;
 unsigned long publish_millis = 0;
 
@@ -41,11 +45,18 @@ void setup() {
   // Initializing Wifi
   logln(rawDisplay, "Connecting Wifi...");
   WiFi.begin(WIFI_SSID, WIFI_PSK);
-  while (WiFi.status() != WL_CONNECTED) 
-  {
+  
+  uint8_t retry = 0;
+  for (; WiFi.status() != WL_CONNECTED && retry < WIFI_RETRY_COUNT; retry++) {
     delay(500);
     Serial.print(".");
   }
+
+  if (retry == WIFI_RETRY_COUNT) {
+    logln(rawDisplay, "Wifi Connection Failed!");
+    delay(2000);
+  }
+
   sprintf(logbuffer, "Connected!\nIP: %s\n", WiFi.localIP().toString().c_str());
   logln(rawDisplay, logbuffer);
 
@@ -66,7 +77,7 @@ void setup() {
   delay(2000);
 
   // Connecting MQTT
-  mqttClient.initialize(MQTT_SERVER, MQTT_PORT, rawDisplay);
+  mqttstate = mqttClient.initialize(MQTT_SERVER, MQTT_PORT, rawDisplay);
   logln(rawDisplay, "MQTT Initialized");
   
   delay(2000);
@@ -88,8 +99,12 @@ void loop() {
       logln(nullptr, "Failed to read from the temp sensor!");
     }
 
-    logln(nullptr, "Publishing heartbeat message");
-    sleeptime -= mqttClient.publishHeartbeat();
+    if (mqttstate == MQTT_CONNECTED) {
+      logln(nullptr, "Publishing heartbeat message");
+      sleeptime -= mqttClient.publishHeartbeat();
+    } else {
+      logln(nullptr, "MQTT Connection Failed");
+    }
 
     logln(nullptr, "Updating Clock");
     clk.update();
@@ -97,7 +112,7 @@ void loop() {
     update_millis = millis();
   }
 
-  if (millis() - publish_millis >= MQTT_PUBLISH_INTERVAL) {
+  if (millis() - publish_millis >= MQTT_PUBLISH_INTERVAL && mqttstate == MQTT_CONNECTED) {
     sprintf(logbuff, "Publishing Results to MQTT Server: %s\n", MQTT_SERVER);
     logln(nullptr, logbuff);
     sleeptime -= mqttClient.publishTempHumidMeasurements();
